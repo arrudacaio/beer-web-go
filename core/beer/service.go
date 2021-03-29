@@ -1,5 +1,11 @@
 package beer
 
+import (
+	"database/sql"
+
+	_ "github.com/mattn/go-sqlite3"
+)
+
 // Aqui vamos definir as regras de negocio
 
 //Define a interface com as funções que serão usadas pelo restante do projeto
@@ -7,7 +13,7 @@ package beer
 
 type Reader interface {
 	GetAll() ([]*Beer, error)
-	Get(ID int) (beer *Beer)
+	Get(ID int64) (beer *Beer)
 }
 
 type Writer interface {
@@ -25,25 +31,50 @@ Em Go qualquer coisa que implementa as funções de uma interface
 passa a ser uma implementação válida, desde que implemente todas as funções
 */
 
-type Service struct{}
+type Service struct {
+	DB *sql.DB
+}
 
 /*
 Vai ser uma especie de construtor
-Toda vez que eu tiver uma variavel do tipo Service,
-eu poderei chamar essas funções que estou associando à esta variavel
-Ex:
-	var service Service
-	service.NewService()
+-> Retorna um ponteiro em memória para uma estrutura
+-> A função agora recebe uma conexão com o banco de dados
 
 */
 
-func NewService() *Service {
-	return &Service{}
+func NewService(db *sql.DB) *Service {
+	return &Service{
+		DB: db,
+	}
 }
 
-// Implementar posteriormente
 func (s *Service) GetAll() ([]*Beer, error) {
-	return nil, nil
+	// Result é um slice de ponteiros do tipo Beer
+	var result []*Beer
+
+	// vamos sempre usar a conexão que está dentro do Service
+	rows, err := s.DB.Query("SELECT id, name, type, style FROM beer")
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Garante que o comando rows.Close vai ser executado na saída da func
+	// assim não precisamos nos preocupar em fechar a conexão
+	defer rows.Close()
+
+	for rows.Next() {
+		var beer Beer
+		err = rows.Scan(&beer.ID, &beer.Name, &beer.Style, &beer.Type)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, &beer)
+
+		return result, nil
+
+	}
 }
 
 func (s *Service) Get(ID int) (*Beer, error) {

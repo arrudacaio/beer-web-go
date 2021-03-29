@@ -4,12 +4,20 @@ package beer
 
 //Define a interface com as funções que serão usadas pelo restante do projeto
 // É basicamente o que representa um serviço para mim
-type UseCase interface {
+
+type Reader interface {
 	GetAll() ([]*Beer, error)
-	Get(ID int) (*Beer, error)
+	Get(ID int) (beer *Beer)
+}
+
+type Writer interface {
 	Store(beer *Beer) error
 	Update(beer *Beer) error
 	Remove(ID int) error
+}
+type UseCase interface {
+	Reader
+	Writer
 }
 
 /*

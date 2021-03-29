@@ -80,7 +80,25 @@ func (s *Service) GetAll() ([]*Beer, error) {
 }
 
 func (s *Service) Get(ID int) (*Beer, error) {
-	return nil, nil
+	var beer Beer
+
+	// Prepare -> verifica se a consulta está valida
+	stmt, err := s.DB.Prepare("SELECT id, name, type, style FROM beer WHERE id = ?")
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Fecha a conexão no momento em que sair da função
+	defer stmt.Close()
+
+	err = stmt.QueryRow(ID).Scan(&beer.ID, &beer.Name, &beer.Style, &beer.Type)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &beer, nil
 }
 
 func (s *Service) Store(beer *Beer) error {

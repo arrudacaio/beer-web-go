@@ -55,6 +55,8 @@ func (s *Service) GetAll() ([]*Beer, error) {
 	// vamos sempre usar a conexão que está dentro do Service
 	rows, err := s.DB.Query("SELECT id, name, type, style FROM beer")
 
+	// O erro deve ser tratado por quem chamou o pacote
+	// Essa é uma boa prática em Go.
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +74,9 @@ func (s *Service) GetAll() ([]*Beer, error) {
 
 		result = append(result, &beer)
 
-		return result, nil
-
 	}
+	return result, nil
+
 }
 
 func (s *Service) Get(ID int) (*Beer, error) {
